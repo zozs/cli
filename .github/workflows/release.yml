@@ -5,27 +5,25 @@ on:
     tags:
       - '*'
 
-permissions:
-  contents: write
-
 jobs:
-  goreleaser:
+  aur:
     runs-on: ubuntu-latest
+    #needs: goreleaser # we don't want to update AUR if goreleaser fails
+    container:
+      image: archlinux/archlinux:base-devel
     steps:
-      - uses: actions/checkout@v3
+      # Setup SSH access to aur.archlinux.org
+      - uses: webfactory/ssh-agent@v0.8.0
         with:
-          fetch-depth: 0
-      - run: git fetch --force --tags
-      - uses: actions/setup-go@v3
-        with:
-          go-version: '>=1.20'
-          cache: true
-      # More assembly might be required: Docker logins, GPG, etc. It all depends
-      # on the needs.
-      - uses: goreleaser/goreleaser-action@v4
-        with:
-          distribution: goreleaser
-          version: latest
-          args: release --rm-dist
+          ssh-private-key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+      # Now actually clone AUR repo, and update to new version
+      - run: |
+          pacman -Syu git go
+          echo "aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN" >> $HOME/.ssh/known_hosts
+          git clone aur@aur.archlinux.org/debricked.git debricked
+          cd debricked/
+          make update_version
+          make package
+          #make push
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          NEW_VERSION: ${{ github.ref_name }}
