@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - '*'
+      - 'v*'
 
 permissions:
   contents: write
@@ -128,6 +128,33 @@ jobs:
             soot-wrapper-11.zip/soot-wrapper-11.zip
             soot-wrapper-17.zip/soot-wrapper-17.zip
             soot-wrapper-21.zip/soot-wrapper-21.zip
+
+  major-release:
+    runs-on: ubuntu-latest
+    needs: goreleaser
+    steps:
+      - name: Update major release tag
+        id: major-tag
+        run: |
+          # returns v1, v2, etc, everything to the left of the leftmost dot.
+          MAJOR_VERSION="${GITHUB_REF_NAME%%.*}"
+          MAJOR_TAG="release-${MAJOR_VERSION}"
+          echo "MAJOR_VERSION=${MAJOR_VERSION}" >> "$GITHUB_OUTPUT"
+          echo "MAJOR_TAG=${MAJOR_TAG}" >> "$GITHUB_OUTPUT"
+          git tag -f "${MAJOR_TAG}"
+          git push -f origin "${MAJOR_TAG}"
+      - name: Create release if it does not exist
+        env:
+          MAJOR_TAG: ${{ steps.major-tag.outputs.MAJOR_TAG }}
+          MAJOR_VERSION: ${{ steps.major-tag.outputs.MAJOR_VERSION }}
+        run: |
+          gh release create "${MAJOR_TAG}" --notes "Latest release for the ${MAJOR_VERSION} branch of the CLI" --title "Latest ${MAJOR_VERSION} CLI" --verify-tag
+      - name: Copy artifacts from actual release to major release
+        env:
+          MAJOR_TAG: ${{ steps.major-tag.outputs.MAJOR_TAG }}
+        run: |
+          gh release download --pattern="cli_*.tar.gz" "${GITHUB_REF_NAME}"
+          gh release upload --clobber "${MAJOR_TAG}" cli_*.tar.gz
 
 #  aur:
 #    runs-on: ubuntu-latest
