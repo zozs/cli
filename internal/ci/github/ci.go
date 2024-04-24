@@ -7,6 +7,7 @@ import (
 
 	"github.com/debricked/cli/internal/ci/env"
 	"github.com/debricked/cli/internal/ci/util"
+	"github.com/fatih/color"
 )
 
 const (
@@ -38,6 +39,8 @@ func (_ Ci) Map() (env.Env, error) {
 	e.RepositoryUrl = fmt.Sprintf("https://github.com/%s", os.Getenv("GITHUB_REPOSITORY"))
 	e.Integration = Integration
 	e.Author = os.Getenv("GITHUB_ACTOR")
+
+	color.NoColor = false
 
 	return e, nil
 }
