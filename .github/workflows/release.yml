@@ -150,11 +150,13 @@ jobs:
         env:
           MAJOR_TAG: ${{ steps.major-tag.outputs.MAJOR_TAG }}
           MAJOR_VERSION: ${{ steps.major-tag.outputs.MAJOR_VERSION }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${MAJOR_TAG}" --notes "Latest release for the ${MAJOR_VERSION} branch of the CLI" --title "Latest ${MAJOR_VERSION} CLI" --verify-tag
       - name: Copy artifacts from actual release to major release
         env:
           MAJOR_TAG: ${{ steps.major-tag.outputs.MAJOR_TAG }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh release download --pattern="cli_*.tar.gz" "${GITHUB_REF_NAME}"
           gh release upload --clobber "${MAJOR_TAG}" cli_*.tar.gz
