@@ -31,9 +31,9 @@ snapshot:
 changelog:
   sort: asc
 
-signs:
-  - artifacts: checksum
-    args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
+#signs:
+  #  - artifacts: checksum
+  #    args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
 
 nfpms:
   - maintainer: viktigpetterr <viktor.grasljunga@gmail.com>
